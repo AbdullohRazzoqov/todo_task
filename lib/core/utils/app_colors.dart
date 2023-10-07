@@ -7,4 +7,6 @@ class AppColors {
   static const Color black = Colors.black;
   static const Color blue = Color(0xFF009FEE);
   static const Color deleteButton = Color(0xFFFEE8E9);
+  static const Color greyTextColor = Color(0xFF999999);
+
 }

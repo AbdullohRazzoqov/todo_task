@@ -2,6 +2,7 @@
 
 part of 'task_model.dart';
 
+
 // **************************************************************************
 // TypeAdapterGenerator
 // **************************************************************************
@@ -18,9 +19,9 @@ class TaskAdapter extends TypeAdapter<Task> {
     };
     return Task(
       taskName: fields[0] as String,
-      description: fields[1] as String,
-      location: fields[2] as String,
-      date: fields[3] as String,
+      description: fields[1] as String?,
+      location: fields[2] as String?,
+      date: fields[3] as String?,
       color: fields[4] as int,
       dateTime: fields[5] as DateTime,
     );

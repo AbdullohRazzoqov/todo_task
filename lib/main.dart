@@ -2,15 +2,20 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get_it/get_it.dart';
+import 'package:todo_task/data/db/service/hive_service.dart';
 import 'package:todo_task/presentation/bloc/add_task/bloc/bloc/add_task_bloc.dart';
 import 'package:todo_task/presentation/bloc/datails_bloc/details_bloc.dart';
 import 'package:todo_task/presentation/bloc/home/bloc/home_bloc.dart';
-import 'package:todo_task/presentation/pages/add_task/add_task.dart';
 import 'package:todo_task/presentation/pages/home_screen/home_screen.dart';
+final getIt = GetIt.instance;
 
-void main() {
+void main() async {
+  HiveService hiveService = await HiveService.create();
+  getIt.registerSingleton<HiveService>(hiveService);
   runApp(const MyApp());
 }
+
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -34,7 +39,7 @@ class MyApp extends StatelessWidget {
             colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
             useMaterial3: true,
           ),
-          home: const HomeScreen(),
+          home: HomeScreen(),
         ),
       ),
     );
@@ -164,6 +169,44 @@ class _DatePickerItem extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: children,
         ),
+      ),
+    );
+  }
+}
+
+class Calendar extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    DateTime firstDayOfMonth = DateTime.now();
+
+    // Determine the day of the week for the first day of the month
+    int startingWeekday = firstDayOfMonth.weekday;
+
+    // Adjust the starting weekday (e.g., if the first day is not Monday)
+    startingWeekday = (startingWeekday + 6) % 7;
+
+    return Scaffold(
+      body: GridView.builder(
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 7,
+        ),
+        itemBuilder: (context, index) {
+          // Calculate the day for this cell
+          int day = index - startingWeekday + 1;
+
+          // Ensure the day is within the current month
+          if (day < 1 || day > DateTime.now().add(Duration(days: 30)).day) {
+            return Container();
+          }
+
+          return Center(
+            child: Text(
+              '$day',
+              style: TextStyle(fontSize: 20.0),
+            ),
+          );
+        },
+        itemCount: 7 * 6, // 7 columns for each of the 6 rows
       ),
     );
   }

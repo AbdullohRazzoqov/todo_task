@@ -7,16 +7,18 @@ class HiveService {
 
   static Future<HiveService> create() async {
     await Hive.initFlutter();
-    Hive.registerAdapter<Task>(
-      TaskAdapter(),
-    );
-
+    if (!Hive.isAdapterRegistered(1)) {
+      Hive.registerAdapter<Task>(
+        TaskAdapter(),
+      );
+    }
     final box = await Hive.openBox<Task>('taskBox');
     return HiveService._create(box);
   }
 
   HiveService._create(this.taskBox) {
     taskBox = taskBox;
+    getTaskAll();
   }
 
   void addTask(Task task) {
@@ -25,6 +27,10 @@ class HiveService {
 
   void deleteTask(int index) {
     taskBox.deleteAt(index);
+  }
+
+  void updateTask(int index, Task task) {
+    taskBox.putAt(index, task);
   }
 
   List<Task?> getTaskAll() {
