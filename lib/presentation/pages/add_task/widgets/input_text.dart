@@ -1,40 +1,74 @@
-
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:todo_task/core/utils/app_colors.dart';
 
 class InputWidgets extends StatelessWidget {
-  InputWidgets({super.key, required this.inputText, required this.nameText});
+  InputWidgets({
+    super.key,
+    this.hint,
+    this.onIconTap,
+    required this.text,
+    this.icon,
+    required this.inputText,
+    this.maxLinges = 1
+  });
+
+  final String? hint;
+  final VoidCallback? onIconTap;
+  final String text;
+  final Widget? icon;
   TextEditingController inputText;
-  String nameText;
+  int maxLinges;
+
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         SizedBox(
           height: 16.h,
         ),
-        Text(
-          nameText,
-          style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w400),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              text,
+              style: TextStyle(
+                color: AppColors.black,
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w400,
+                height: 1.43,
+                letterSpacing: 0.25,
+              ),
+            ),
+          ],
         ),
         SizedBox(
-          height: 2.h,
+          height: 2.w,
         ),
-        TextFormField(
-          controller: inputText,
-          cursorColor: AppColors.blue,
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: const Color(0xFFF3F4F6),
-            contentPadding:
-                const EdgeInsets.symmetric(vertical: 16, horizontal: 40),
-            border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none),
+        Container(
+          height: 42.h,
+          decoration: BoxDecoration(
+            color: AppColors.inputColor,
+            borderRadius: BorderRadius.circular(8.r),
           ),
-          keyboardType: TextInputType.text,
+          child: Center(
+            child: TextFormField(
+              // autofocus: true,
+              maxLines: maxLinges,
+              onTapOutside: (event) => FocusScope.of(context).unfocus(),
+              controller: inputText,
+              textInputAction: TextInputAction.next,
+              keyboardType: TextInputType.text,
+              decoration: InputDecoration(
+                  suffixIcon: icon ?? const SizedBox(),
+                  contentPadding: EdgeInsets.all(5.w),
+                  hintText: hint,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none),
+            ),
+          ),
         ),
       ],
     );

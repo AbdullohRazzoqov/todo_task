@@ -49,6 +49,10 @@ dependencies:
   lottie: ^2.6.0
   get_it: ^7.6.4
   top_snackbar_flutter: ^3.1.0
+  sqflite: ^2.3.0
+  path: ^1.8.3
+  bloc_concurrency: ^0.2.2
+  fluttertoast: ^8.2.2
 
 
 

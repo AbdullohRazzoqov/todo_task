@@ -8,44 +8,44 @@ import 'package:todo_task/core/helpers/parse.dart';
 import 'package:todo_task/core/utils/app_colors.dart';
 import 'package:todo_task/core/utils/app_icons.dart';
 import 'package:todo_task/data/db/model/event_model.dart';
+import 'package:todo_task/presentation/global_widgets/custom_timer_picker.dart';
+import 'package:todo_task/presentation/pages/add_task/add_task.dart';
 import 'package:todo_task/presentation/pages/add_task/widgets/input_text.dart';
 
 import '../../bloc/main/main_bloc.dart';
 
-class AddTask extends StatefulWidget {
-  const AddTask({
-    super.key,
-    required this.year,
-    required this.month,
-    required this.day,
-  });
-
-  final int year;
-  final int month;
-  final int day;
-
+class EditEvent extends StatefulWidget {
+  EditEvent({super.key, required this.event});
+  Event event;
   @override
-  State<AddTask> createState() => _AddTaskState();
+  State<EditEvent> createState() => _EditEventState();
 }
 
 TextEditingController inputName = TextEditingController();
 TextEditingController inputLocation = TextEditingController();
 TextEditingController inputDescription = TextEditingController();
+late DateTime dateTime;
 List<Color> items = const [
   Color(0xFF009FEE),
   Color(0xFFEE2B00),
   Color(0xFFEE8F00),
 ];
-late DateTime dateTime;
+
 Color selectColor = const Color(0xFF009FEE);
 
-class _AddTaskState extends State<AddTask> {
-  String firstTime = '00:00';
-  String secondTime = '00:59';
-
+class _EditEventState extends State<EditEvent> {
+  String firstTime = '';
+  String secondTime = '';
+  late DateTime dateTime;
   @override
   void initState() {
-    dateTime = DateTime(widget.year, widget.month, widget.day);
+    Event event = widget.event;
+    inputName.text = event.name;
+    inputLocation.text = event.location;
+    inputDescription.text = event.description;
+    firstTime = event.firstDate;
+    secondTime = event.secondDate;
+    dateTime = DateTime.now();
     super.initState();
   }
 
@@ -53,12 +53,11 @@ class _AddTaskState extends State<AddTask> {
   Widget build(BuildContext context) {
     return BlocListener<MainBloc, MainState>(
       listener: (context, state) {
-        if (state.stateStatus == StateStatus.save) {
+        if (state.stateStatus == StateStatus.edit) {
           Navigator.pop(context);
-          TopSnackBarMessage.message(state.message!, Colors.green);
-          inputName.clear();
-          inputDescription.clear();
-          inputLocation.clear();
+          Navigator.pop(context);
+          TopSnackBarMessage.message(
+              "The event was successfully modified", Colors.green);
         }
       },
       child: Scaffold(
@@ -77,9 +76,9 @@ class _AddTaskState extends State<AddTask> {
                       behavior: HitTestBehavior.opaque,
                       onTap: () {
                         Navigator.pop(context);
-                        inputDescription.clear();
-                        inputName.clear();
                         inputLocation.clear();
+                        inputName.clear();
+                        inputDescription.clear();
                       },
                       child: SvgPicture.asset(
                         AppIcons.arrowLeftIcon,
@@ -99,9 +98,7 @@ class _AddTaskState extends State<AddTask> {
                 height: 2,
               ),
               InputWidgets(
-                inputText: inputDescription,
-                text: 'Event Description',
-                maxLinges: 7,
+                inputText: inputDescription,maxLinges: 7, text: 'Event Description',
               ),
               InputWidgets(
                 text: 'Event location',
@@ -179,6 +176,27 @@ class _AddTaskState extends State<AddTask> {
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     GestureDetector(
+                      onTap: () async {
+                        dateTime = await CustomTimePicker.timePicker(context) ??
+                            dateTime;
+                        setState(() {});
+                      },
+                      behavior: HitTestBehavior.opaque,
+                      child: Text(
+                        '${dateTime.day}-${dateTime.month}-${dateTime.year}',
+                        style: TextStyle(
+                          color: AppColors.black,
+                          fontSize: 16.sp,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                    ),
+                    Container(
+                      margin: EdgeInsets.symmetric(vertical: 4.h),
+                      width: 1,
+                      color: AppColors.greyTextColor,
+                    ),
+                    GestureDetector(
                       behavior: HitTestBehavior.opaque,
                       onTap: () async {
                         firstTime = await timePicker(context) ?? firstTime;
@@ -216,17 +234,24 @@ class _AddTaskState extends State<AddTask> {
                   ],
                 ),
               ),
+              SizedBox(
+                height: 16.h,
+              ),
               const Expanded(child: SizedBox()),
               GestureDetector(
                 behavior: HitTestBehavior.opaque,
                 onTap: () {
                   if (inputName.text.isEmpty) {
-                    print('Hello');
-                    TopSnackBarMessage.message(
-                        "Event name must not be empty", Colors.red);
+                    Fluttertoast.showToast(
+                        msg: "Event name must not be empty",
+                        gravity: ToastGravity.TOP,
+                        timeInSecForIosWeb: 1,
+                        backgroundColor: Colors.red,
+                        textColor: Colors.white,
+                        fontSize: 16.0);
                   } else {
                     context.read<MainBloc>().add(
-                          EventAdded(
+                          EventEdited(
                             event: Event(
                                 name: inputName.text,
                                 description: inputDescription.text,
@@ -234,11 +259,11 @@ class _AddTaskState extends State<AddTask> {
                                 firstDate: firstTime,
                                 location: inputLocation.text,
                                 day: dateTime.toIso8601String(),
-                                color: selectColor.value),
+                                color: selectColor.value,
+                                id: widget.event.id),
+                            id: widget.event.id!,
                           ),
                         );
-                    print('object');
-                    // Navigator.pop(context);
                   }
                 },
                 child: Container(
@@ -248,7 +273,7 @@ class _AddTaskState extends State<AddTask> {
                       color: const Color(0xFF009FEE)),
                   child: Center(
                     child: Text(
-                      'Add',
+                      'Edit',
                       style: TextStyle(
                         color: AppColors.white,
                         fontSize: 16.sp,
@@ -302,6 +327,7 @@ class _AddTaskState extends State<AddTask> {
                 ),
               ),
               GestureDetector(
+                behavior: HitTestBehavior.opaque,
                 onTap: () {
                   Navigator.pop(context, selectedTime);
                 },
@@ -313,7 +339,7 @@ class _AddTaskState extends State<AddTask> {
                   ),
                   child: Center(
                     child: Text(
-                      'Add',
+                      'Edit',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 16.sp,
@@ -328,23 +354,10 @@ class _AddTaskState extends State<AddTask> {
         );
       },
     );
-
     if (selectedTime != null) {
       return '${convertToTwoDigit(selectedTime!.hour)}:${convertToTwoDigit(selectedTime!.minute)}';
     } else {
       return null;
     }
-  }
-}
-
-class TopSnackBarMessage {
-  static message(String text, Color color) {
-    Fluttertoast.showToast(
-        msg: text,
-        gravity: ToastGravity.TOP,
-        timeInSecForIosWeb: 1,
-        backgroundColor: color,
-        textColor: Colors.white,
-        fontSize: 16.0);
   }
 }
